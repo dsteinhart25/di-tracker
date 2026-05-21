@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Disruption Investor — Portfolio Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf8f5;
+    --bg-alt: #f3efe9;
+    --ink: #1a1a1a;
+    --ink-soft: #5a5a5a;
+    --ink-faint: #8a8a8a;
+    --rule: #d8d2c8;
+    --rule-soft: #e8e3db;
+    --green: #2d6a4f;
+    --green-bg: #e0eee5;
+    --red: #a02929;
+    --red-bg: #f5dcdc;
+    --amber: #b87330;
+    --amber-bg: #fae8d2;
+    --accent: #1a3a5c;
+    --section: #f5e8d0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .title-block h1 {
+    margin: 0 0 4px;
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .title-block .sub {
+    color: var(--ink-soft);
+    font-size: 14px;
+    font-style: italic;
+  }
+  .meta {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .meta .as-of {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  thead th {
+    background: var(--ink);
+    color: var(--bg);
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 2px solid var(--ink);
+  }
+  thead th.num { text-align: right; }
+  tbody tr.holding td {
+    padding: 12px;
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: top;
+  }
+  tbody tr.holding td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  tbody tr.holding td.ticker {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+  }
+  tbody tr.holding td.ref-date {
+    color: var(--ink-soft);
+    font-size: 12px;
+  }
+  tbody tr.note td {
+    padding: 4px 12px 14px;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-soft);
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 14px;
+    font-style: italic;
+    line-height: 1.45;
+  }
+  tbody tr.section-header td {
+    background: var(--section);
+    padding: 10px 12px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  tbody tr.section-header td .basket-return {
+    float: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .status-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .status-buy { background: var(--green-bg); color: var(--green); }
+  .status-fr { background: var(--amber-bg); color: var(--amber); }
+  .return-pos { color: var(--green); font-weight: 700; }
+  .return-neg { color: var(--red); font-weight: 700; }
+  .return-zero { color: var(--ink-soft); font-weight: 500; }
+  footer {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  footer p { margin: 4px 0; }
+  @media (max-width: 768px) {
+    .wrap { padding: 20px 12px; }
+    .title-block h1 { font-size: 28px; }
+    table { font-size: 11px; }
+    thead th, tbody td { padding: 8px 6px !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="title-block">
+      <h1>Disruption Investor</h1>
+      <div class="sub">Portfolio tracker — Chris Wood &amp; Stephen McBride, RiskHedge</div>
+    </div>
+    <div class="meta">
+      <div class="as-of">As of May 6, 2026</div>
+      <div>Prices last updated manually</div>
+    </div>
+  </header>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Symbol</th>
+        <th>Ref. Date</th>
+        <th class="num">Entry Price</th>
+        <th class="num">Latest Price</th>
+        <th class="num">Total Return</th>
+      </tr>
+    </thead>
+    <tbody id="portfolio-body"></tbody>
+  </table>
+
+  <footer>
+    <p>Total Return = (Latest Price − Entry Price) / Entry Price. For Free Ride positions, original capital was recouped; remaining shares have zero cost basis but Total Return shown is based on Entry Price.</p>
+    <p>To update prices: open <code>index.html</code> in a text editor, find the <code>PORTFOLIO</code> array, and edit the <code>latest</code> values. Save and refresh.</p>
+  </footer>
+
+</div>
+
+<script>
+// ============================================================
+// PORTFOLIO DATA — edit `latest` prices here when you want to update
+// ============================================================
+const AS_OF_DATE = "May 6, 2026";
+
+const PORTFOLIO = [
+  // Single positions
+  { status: "Buy", ticker: "ALAB",  refDate: "5/8/2026",  entry: null, latest: null,
+    note: "Buy Astera Labs (ALAB) up to $240 per share and set a 60% hard stop." },
+
+  // Semi-cap ETF basket
+  { sectionHeader: "Semi-cap \"ETF\"", basketKey: "semicap" },
+  { status: "Buy", ticker: "KLAC",  refDate: "3/6/2026",  entry: 1344.55, latest: 1816.29, basket: "semicap",
+    note: "Buy 1/4 of a position in KLA Corp. (KLAC) up to $1,600 per share. KLAC is part of our Semi-cap \"ETF.\"" },
+  { status: "Buy", ticker: "TER",   refDate: "3/6/2026",  entry: 273.05,  latest: 382.48,  basket: "semicap",
+    note: "Buy 1/4 of a position in Teradyne (TER) up to $350 per share. TER is part of our Semi-cap \"ETF.\"" },
+  { status: "Buy", ticker: "ATEYY", refDate: "3/6/2026",  entry: 153.39,  latest: 197.00,  basket: "semicap",
+    note: "Buy 1/4 of a position in Advantest Corp. (ATEYY) up to $200 per share. ATEYY is part of our Semi-cap \"ETF.\"" },
+  { status: "Buy", ticker: "FORM",  refDate: "3/6/2026",  entry: 85.01,   latest: 149.12,  basket: "semicap",
+    note: "Buy 1/4 of a position in FormFactor (FORM) up to $110. FORM is part of our Semi-cap \"ETF.\"" },
+
+  // QQQ Put
+  { status: "Buy", ticker: "QQQ260630P00500000", refDate: "12/5/2025", entry: 8.55, latest: 0.78,
+    note: "Buy June 30, 2026 $500 QQQ Puts up to $12.00." },
+
+  // MU
+  { status: "Free Ride/Buy", ticker: "MU", refDate: "10/3/2025", entry: 187.83, latest: 666.59,
+    note: "Buy Micron Technology (MU) at current market prices up to $300 and set a 60% hard stop. Our stop price is $75.13. Free ride taken on 1/27/2026 at $410.24." },
+
+  // Phase 2 AI ETF
+  { sectionHeader: "Phase 2 AI \"ETF\"", basketKey: "phase2ai" },
+  { status: "Buy",           ticker: "AVGO", refDate: "9/5/2025", entry: 333.68, latest: 425.44, basket: "phase2ai",
+    note: "Buy 1/3 of a position in Broadcom (AVGO) at current market prices and set a 50% hard stop. AVGO is part of our Phase 2 AI \"ETF.\" Our stop price is $166.84." },
+  { status: "Buy",           ticker: "ANET", refDate: "9/5/2025", entry: 142.85, latest: 147.06, basket: "phase2ai",
+    note: "Buy 1/3 of a position in Arista Networks (ANET) at current market prices and set a 50% hard stop. ANET is part of our Phase 2 AI \"ETF.\" Our stop price is $71.43." },
+  { status: "Free Ride/Buy", ticker: "VRT",  refDate: "9/5/2025", entry: 123.89, latest: 358.92, basket: "phase2ai",
+    note: "Buy 1/3 of a position in Vertiv Holdings (VRT) at current market prices and set a 50% hard stop. VRT is part of our Phase 2 AI \"ETF.\" Our stop price is $61.95. Free ride taken on 2/26/2026 at $259.23." },
+
+  // Singles
+  { status: "Buy",           ticker: "UBER", refDate: "8/8/2025", entry: 89.56, latest: 79.17,
+    note: "Buy Uber Technologies (UBER) at current market prices and set a 50% hard stop. Our stop price is $44.78." },
+  { status: "Buy",           ticker: "MIR",  refDate: "7/7/2025", entry: 20.72, latest: 20.39,
+    note: "Buy Mirion Technologies (MIR) at current market prices and set a 50% hard stop. Our stop price is $10.36." },
+  { status: "Free Ride/Buy", ticker: "NXT",  refDate: "4/4/2025", entry: 39.02, latest: 126.08,
+    note: "Buy Nextpower (NXT) up to $130 per share. \"Free Ride\" taken on 10/3/25 at $77.13." },
+  { status: "Buy",           ticker: "FXI",  refDate: "3/7/2025", entry: 36.96, latest: 37.49,
+    note: "Buy iShares China Large-Cap ETF (FXI) at current market prices and set a 50% hard stop. Our stop price is $18.48." },
+
+  // Cybersecurity ETF
+  { sectionHeader: "Cybersecurity \"ETF\"", basketKey: "cyber" },
+  { status: "Buy", ticker: "ZS",   refDate: "11/8/2024", entry: 195.73, latest: 138.83, basket: "cyber",
+    note: "Buy 1/3 of a position in Zscaler (ZS) at current market prices. ZS is part of our Cybersecurity \"ETF.\" Stop removed for now." },
+  { status: "Buy", ticker: "PANW", refDate: "11/8/2024", entry: 195.70, latest: 183.68, basket: "cyber",
+    note: "Buy 1/3 of a position in Palo Alto Networks (PANW) at current market prices. PANW is part of our Cybersecurity \"ETF.\" Stop removed for now." },
+  { status: "Buy", ticker: "CRWD", refDate: "11/8/2024", entry: 330.03, latest: 468.07, basket: "cyber",
+    note: "Buy 1/3 of a position in CrowdStrike Holdings (CRWD) at current market prices. CRWD is part of our Cybersecurity \"ETF.\" Stop removed for now." },
+
+  // Older holdings
+  { status: "Buy",           ticker: "TSLA",    refDate: "7/5/2024",  entry: 302.17,  latest: 398.73,
+    note: "Buy second-half of Tesla (TSLA) position up to $400 per share. *Bought 1/2 position on 7/5/2024 at $251.47, and 1/2 position on 4/6/2026 at $352.82 for an effective entry price of $302.17 for a full position." },
+  { status: "Buy",           ticker: "ETH",     refDate: "9/2/2021",  entry: 3746.00, latest: 2350.43,
+    note: "Buy Ethereum (ETH) at current market prices. Note: Ethereum is a cryptocurrency. Latest closing price based on latest data in range (UTC time)." },
+  { status: "Free Ride/Buy", ticker: "TSM",     refDate: "12/3/2020", entry: 99.50,   latest: 419.50,
+    note: "Buy Taiwan Semiconductor (TSM) up to $380 per share. Free Ride taken on October 15, 2024 at $185.14." },
+  { status: "Free Ride/Buy", ticker: "NVDA",    refDate: "9/3/2020",  entry: 13.02,   latest: 207.83,
+    note: "Buy Nvidia (NVDA) up to $200 per share. Free Ride taken on November 5, 2021 at $29.69. Sold half of remaining shares on February 13, 2024 at $72.10." },
+  { status: "Buy",           ticker: "ROK",     refDate: "12/1/2022", entry: 266.75,  latest: 459.35,
+    note: "Buy Rockwell Automation (ROK) up to $350 per share. Stop loss removed for now. See note sent on 4/10/2025 for more details." },
+];
+
+// ============================================================
+// RENDER
+// ============================================================
+function formatPrice(p) {
+  if (p == null) return "—";
+  return `$${p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatPct(p) {
+  if (p == null || !isFinite(p)) return "—";
+  const sign = p >= 0 ? "+" : "";
+  return `${sign}${p.toFixed(2)}%`;
+}
+
+function pctClass(p) {
+  if (p == null || !isFinite(p)) return "return-zero";
+  if (p > 0.01) return "return-pos";
+  if (p < -0.01) return "return-neg";
+  return "return-zero";
+}
+
+function computeReturn(entry, latest) {
+  if (entry == null || latest == null) return null;
+  return (latest - entry) / entry * 100;
+}
+
+function render() {
+  const body = document.getElementById("portfolio-body");
+  body.innerHTML = "";
+
+  // Pass 1: compute basket average returns
+  const baskets = {};
+  for (const row of PORTFOLIO) {
+    if (row.sectionHeader || !row.basket) continue;
+    const ret = computeReturn(row.entry, row.latest);
+    if (ret == null) continue;
+    if (!baskets[row.basket]) baskets[row.basket] = { sum: 0, count: 0 };
+    baskets[row.basket].sum += ret;
+    baskets[row.basket].count += 1;
+  }
+  for (const k in baskets) {
+    baskets[k].avg = baskets[k].sum / baskets[k].count;
+  }
+
+  // Pass 2: render
+  for (const row of PORTFOLIO) {
+    if (row.sectionHeader) {
+      const tr = document.createElement("tr");
+      tr.className = "section-header";
+      const td = document.createElement("td");
+      td.colSpan = 6;
+      const basketRet = baskets[row.basketKey]?.avg;
+      const retDisplay = basketRet != null
+        ? `<span class="basket-return ${pctClass(basketRet)}">${formatPct(basketRet)}</span>`
+        : "";
+      td.innerHTML = row.sectionHeader + retDisplay;
+      tr.appendChild(td);
+      body.appendChild(tr);
+      continue;
+    }
+
+    const tr = document.createElement("tr");
+    tr.className = "holding";
+
+    const tdStatus = document.createElement("td");
+    const pillClass = row.status.includes("Free Ride") ? "status-fr" : "status-buy";
+    tdStatus.innerHTML = `<span class="status-pill ${pillClass}">${row.status}</span>`;
+    tr.appendChild(tdStatus);
+
+    const tdTicker = document.createElement("td");
+    tdTicker.className = "ticker";
+    tdTicker.textContent = row.ticker;
+    tr.appendChild(tdTicker);
+
+    const tdDate = document.createElement("td");
+    tdDate.className = "ref-date";
+    tdDate.textContent = row.refDate;
+    tr.appendChild(tdDate);
+
+    const tdEntry = document.createElement("td");
+    tdEntry.className = "num";
+    tdEntry.textContent = formatPrice(row.entry);
+    tr.appendChild(tdEntry);
+
+    const tdLatest = document.createElement("td");
+    tdLatest.className = "num";
+    tdLatest.textContent = formatPrice(row.latest);
+    tr.appendChild(tdLatest);
+
+    const tdReturn = document.createElement("td");
+    tdReturn.className = "num";
+    const ret = computeReturn(row.entry, row.latest);
+    if (ret != null) {
+      tdReturn.innerHTML = `<span class="${pctClass(ret)}">${formatPct(ret)}</span>`;
+    } else {
+      tdReturn.textContent = "—";
+    }
+    tr.appendChild(tdReturn);
+    body.appendChild(tr);
+
+    if (row.note) {
+      const trNote = document.createElement("tr");
+      trNote.className = "note";
+      const tdNote = document.createElement("td");
+      tdNote.colSpan = 6;
+      tdNote.textContent = row.note;
+      trNote.appendChild(tdNote);
+      body.appendChild(trNote);
+    }
+  }
+}
+
+render();
+</script>
+</body>
+</html>
